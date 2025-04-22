@@ -68,8 +68,10 @@ app.get('/stream', async (req, res) => {
       return res.status(500).send('Play button not found.');
     }
 
-    console.log('⏳ Waiting for stream URL (5s)...');
-    await page.waitForTimeout(5000);
+
+
+
+    
 
     await browser.close();
     console.log('🧹 Browser closed');
