@@ -28,18 +28,9 @@ app.get('/stream', async (req, res) => {
     });
 
     await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
-    await page.waitForTimeout(1500); // small buffer for initial scripts
+    await page.waitForTimeout(1000); // faster preload
 
-    // Accept cookie banner if present
-    try {
-      await page.waitForSelector('button#onetrust-accept-btn-handler', { timeout: 3000 });
-      await page.click('button#onetrust-accept-btn-handler');
-      console.log('Accepted cookies');
-    } catch (err) {
-      console.log('No cookie banner found');
-    }
-
-    // Wait for play button, click from within page context
+    // Click play button inside page context
     await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 10000 });
     await page.evaluate(() => {
       const playButton = document.querySelector('.PlayButton-module__button--3behY');
