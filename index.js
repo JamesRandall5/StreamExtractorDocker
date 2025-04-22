@@ -35,8 +35,8 @@ app.get('/stream', async (req, res) => {
     await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
     console.log('✅ DOM content loaded');
 
-    console.log('⏱️ Small pause for scripts (1s)...');
-    await page.waitForTimeout(1000);
+    console.log('⏱️ Waiting for scripts adn UI (4s)...');
+    await page.waitForTimeout(4000);
 
     try {
       console.log('🎯 Waiting for play button...');
