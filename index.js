@@ -5,7 +5,7 @@ const app = express();
 app.get('/stream', async (req, res) => {
   const pageUrl = req.query.url;
   if (!pageUrl || !pageUrl.startsWith('https://radioplayer.planetradio.co.uk/')) {
-    console.log('❌ Invalid or missing ?url parameter');
+    console.log('❌ Invalid or missing URL');
     return res.status(400).send('Missing or invalid ?url=');
   }
 
@@ -23,64 +23,68 @@ app.get('/stream', async (req, res) => {
 
     let streamUrl = null;
 
-    console.log('🔍 Attaching request listener...');
     page.on('request', request => {
       const reqUrl = request.url();
       if (reqUrl.includes('.aac') || reqUrl.includes('.m3u8') || reqUrl.includes('.mp3')) {
-        console.log('🎧 Detected stream URL:', reqUrl);
+        console.log('🎧 Detected stream request:', reqUrl);
         streamUrl = reqUrl;
       }
     });
 
-    console.log('🌐 Navigating to:', pageUrl);
+    console.log(`🌐 Navigating to ${pageUrl}...`);
     await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
-    console.log('⏳ Waiting for background scripts (4s)...');
+    console.log('✅ DOM content loaded');
+
+    console.log('⏱️ Waiting for background scripts (4s)...');
     await page.waitForTimeout(4000);
 
     // Accept cookie banner if present
     try {
-      console.log('🍪 Checking for cookie banner...');
+      console.log('🔍 Checking for cookie banner...');
       await page.waitForSelector('button#onetrust-accept-btn-handler', { timeout: 5000 });
       await page.click('button#onetrust-accept-btn-handler');
-      console.log('✅ Accepted cookies');
+      console.log('🍪 Accepted cookie banner');
     } catch (err) {
-      console.log('✅ No cookie banner found');
+      console.log('👌 No cookie banner found');
     }
 
-    // Click play button
+    // Wait for the play button and click it from within the page context
     try {
-      console.log('▶️ Waiting for play button...');
+      console.log('🎯 Waiting for play button...');
       await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 10000 });
-
-      console.log('🔘 Clicking play button...');
+      console.log('✅ Play button found, clicking...');
       await page.evaluate(() => {
         const playButton = document.querySelector('.PlayButton-module__button--3behY');
         if (playButton) {
           playButton.click();
-          console.log('✅ Play button clicked inside page context');
+          console.log('▶️ Clicked play button');
+        } else {
+          console.log('🚫 Play button not found in evaluate()');
         }
       });
     } catch (err) {
-      console.log('❌ Play button not found:', err.message);
+      console.log('❌ Play button not found within timeout:', err.message);
+      await browser.close();
+      return res.status(500).send('Play button not found.');
     }
 
     console.log('⏳ Waiting for stream URL (5s)...');
     await page.waitForTimeout(5000);
 
-    console.log('🧹 Closing browser...');
     await browser.close();
+    console.log('🧹 Browser closed');
 
     if (streamUrl) {
-      console.log('✅ Stream URL found and returned');
+      console.log('✅ Returning stream URL');
       res.send(streamUrl);
     } else {
-      console.log('❌ No stream URL found after interaction');
+      console.log('❌ Stream URL not found');
       res.status(404).send('Stream URL not found.');
     }
 
   } catch (err) {
-    console.error('❌ Error during stream extraction:', err.message);
     if (browser) await browser.close();
+    console.error('💥 Error:', err.message);
     res.status(500).send(`Error: ${err.message}`);
   }
 });
