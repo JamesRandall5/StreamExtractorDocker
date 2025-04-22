@@ -38,15 +38,9 @@ app.get('/stream', async (req, res) => {
     console.log('⏱️ Waiting for background scripts (4s)...');
     await page.waitForTimeout(4000);
 
-    // Accept cookie banner if present
-    try {
-      console.log('🔍 Checking for cookie banner...');
-      await page.waitForSelector('button#onetrust-accept-btn-handler', { timeout: 5000 });
-      await page.click('button#onetrust-accept-btn-handler');
-      console.log('🍪 Accepted cookie banner');
-    } catch (err) {
-      console.log('👌 No cookie banner found');
-    }
+
+
+    
 
     // Wait for the play button and click it from within the page context
     try {
@@ -67,12 +61,7 @@ app.get('/stream', async (req, res) => {
       await browser.close();
       return res.status(500).send('Play button not found.');
     }
-
-
-
-
     
-
     await browser.close();
     console.log('🧹 Browser closed');
 
