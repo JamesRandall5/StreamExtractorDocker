@@ -35,40 +35,41 @@ app.get('/stream', async (req, res) => {
     await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
     console.log('✅ DOM content loaded');
 
-    console.log('⏱️ Waiting for scripts adn UI (4s)...');
+    console.log('⏱️ Waiting for background scripts (4s)...');
     await page.waitForTimeout(4000);
 
+    // Accept cookie banner if present
+    try {
+      console.log('🔍 Checking for cookie banner...');
+      await page.waitForSelector('button#onetrust-accept-btn-handler', { timeout: 5000 });
+      await page.click('button#onetrust-accept-btn-handler');
+      console.log('🍪 Accepted cookie banner');
+    } catch (err) {
+      console.log('👌 No cookie banner found');
+    }
+
+    // Wait for the play button and click it from within the page context
     try {
       console.log('🎯 Waiting for play button...');
-      await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 12000 });
-      console.log('✅ Play button found, scrolling & clicking...');
+      await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 10000 });
+      console.log('✅ Play button found, clicking...');
       await page.evaluate(() => {
         const playButton = document.querySelector('.PlayButton-module__button--3behY');
         if (playButton) {
-          playButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
           playButton.click();
           console.log('▶️ Clicked play button');
+        } else {
+          console.log('🚫 Play button not found in evaluate()');
         }
       });
     } catch (err) {
-      console.log('❌ Play button not found in time:', err.message);
+      console.log('❌ Play button not found within timeout:', err.message);
       await browser.close();
       return res.status(500).send('Play button not found.');
     }
 
-    console.log('⏳ Waiting for stream URL or timeout...');
-    const maxWaitTime = 5000;
-    await Promise.race([
-      new Promise(resolve => {
-        const checkInterval = setInterval(() => {
-          if (streamUrl) {
-            clearInterval(checkInterval);
-            resolve();
-          }
-        }, 100);
-      }),
-      page.waitForTimeout(maxWaitTime)
-    ]);
+    console.log('⏳ Waiting for stream URL (5s)...');
+    await page.waitForTimeout(5000);
 
     await browser.close();
     console.log('🧹 Browser closed');
