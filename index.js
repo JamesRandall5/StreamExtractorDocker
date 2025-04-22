@@ -47,11 +47,16 @@ app.get('/stream', async (req, res) => {
     } catch (err) {
       console.log('👌 No cookie banner found');
     }
-    
-    // Wait for the play button and click it from within the page context
+
+    // Log the full HTML for debugging (before play button wait)
+    console.log('🕵️ Dumping page HTML to debug play button presence...');
+    const html = await page.content();
+    console.log(html);
+
+    // Wait for the play button and click it
     try {
       console.log('🎯 Waiting for play button...');
-      await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 10000 });
+      await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 20000 });
       console.log('✅ Play button found, clicking...');
       await page.evaluate(() => {
         const playButton = document.querySelector('.PlayButton-module__button--3behY');
@@ -67,7 +72,7 @@ app.get('/stream', async (req, res) => {
       await browser.close();
       return res.status(500).send('Play button not found.');
     }
-    
+
     await browser.close();
     console.log('🧹 Browser closed');
 
