@@ -35,17 +35,17 @@ app.get('/stream', async (req, res) => {
     await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
     console.log('✅ DOM content loaded');
 
-    // Reduced preload time
     console.log('⏱️ Small pause for scripts (1s)...');
     await page.waitForTimeout(1000);
 
     try {
       console.log('🎯 Waiting for play button...');
-      await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 8000 });
-      console.log('✅ Play button found, clicking...');
+      await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 12000 });
+      console.log('✅ Play button found, scrolling & clicking...');
       await page.evaluate(() => {
         const playButton = document.querySelector('.PlayButton-module__button--3behY');
         if (playButton) {
+          playButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
           playButton.click();
           console.log('▶️ Clicked play button');
         }
