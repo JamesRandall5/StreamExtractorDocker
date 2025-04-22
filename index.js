@@ -27,7 +27,8 @@ app.get('/stream', async (req, res) => {
       }
     });
 
-    await page.goto(pageUrl, { waitUntil: 'networkidle2', timeout: 40000 });
+    await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await page.waitForTimeout(4000); // let background scripts load
 
     // Accept cookie banner if present
     try {
