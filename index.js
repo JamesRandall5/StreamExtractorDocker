@@ -39,9 +39,17 @@ app.get('/stream', async (req, res) => {
       console.log('No cookie banner found');
     }
 
-    // Click play button
+    // Wait for the play button and click it from within the page context
     await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 10000 });
-    await page.click('.PlayButton-module__button--3behY');
+    await page.evaluate(() => {
+      const playButton = document.querySelector('.PlayButton-module__button--3behY');
+      if (playButton) {
+        playButton.click();
+        console.log('Clicked play button');
+      }
+    });
+
+    // Give time for stream request to fire
     await page.waitForTimeout(5000);
 
     await browser.close();
