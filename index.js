@@ -28,29 +28,37 @@ app.get('/stream', async (req, res) => {
     });
 
     await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
-    await page.waitForTimeout(4000); // let background scripts load
+    await page.waitForTimeout(1500); // small buffer for initial scripts
 
     // Accept cookie banner if present
     try {
-      await page.waitForSelector('button#onetrust-accept-btn-handler', { timeout: 5000 });
+      await page.waitForSelector('button#onetrust-accept-btn-handler', { timeout: 3000 });
       await page.click('button#onetrust-accept-btn-handler');
       console.log('Accepted cookies');
     } catch (err) {
       console.log('No cookie banner found');
     }
 
-    // Wait for the play button and click it from within the page context
+    // Wait for play button, click from within page context
     await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 10000 });
     await page.evaluate(() => {
       const playButton = document.querySelector('.PlayButton-module__button--3behY');
-      if (playButton) {
-        playButton.click();
-        console.log('Clicked play button');
-      }
+      if (playButton) playButton.click();
     });
 
-    // Give time for stream request to fire
-    await page.waitForTimeout(5000);
+    // Wait for stream URL or timeout after 7s
+    const maxWaitTime = 7000;
+    await Promise.race([
+      new Promise(resolve => {
+        const checkInterval = setInterval(() => {
+          if (streamUrl) {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 100);
+      }),
+      page.waitForTimeout(maxWaitTime)
+    ]);
 
     await browser.close();
 
