@@ -27,11 +27,20 @@ app.get('/stream', async (req, res) => {
       }
     });
 
-    await page.goto(pageUrl, { waitUntil: 'networkidle2', timeout: 20000 });
+    await page.goto(pageUrl, { waitUntil: 'networkidle2', timeout: 40000 });
 
+    // Accept cookie banner if present
+    try {
+      await page.waitForSelector('button#onetrust-accept-btn-handler', { timeout: 5000 });
+      await page.click('button#onetrust-accept-btn-handler');
+      console.log('Accepted cookies');
+    } catch (err) {
+      console.log('No cookie banner found');
+    }
+
+    // Click play button
     await page.waitForSelector('.PlayButton-module__button--3behY', { timeout: 10000 });
     await page.click('.PlayButton-module__button--3behY');
-
     await page.waitForTimeout(5000);
 
     await browser.close();
