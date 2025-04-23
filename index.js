@@ -48,11 +48,6 @@ app.get('/stream', async (req, res) => {
       console.log('👌 No cookie banner found');
     }
 
-    // Log the full HTML for debugging (before play button wait)
-    console.log('🕵️ Dumping page HTML to debug play button presence...');
-    const html = await page.content();
-    console.log(html);
-
     // Wait for the play button and click it
     try {
       console.log('🎯 Waiting for play button...');
